@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PrepAI | Exam</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
+    <div class="container">
+
+        <a class="navbar-brand fw-bold" href="/dashboard">
+            PrepAI
+        </a>
+
+        <div class="ms-auto">
+
+            <span class="text-white">
+
+                {{ company }} | {{ year }} |
+                {% if section.section_name %}
+                    {{ section.section_name }}
+                {% else %}
+                    {{ section }}
+                {% endif %}
+
+            </span>
+
+        </div>
+
+    </div>
+
+</nav>
+
+<div class="container mt-4">
+
+    <div class="alert alert-warning text-center shadow">
+
+        <h3>
+
+            ⏰ Time Left
+
+            <br>
+
+            <span id="timer" class="text-danger">
+
+                30:00
+
+            </span>
+
+        </h3>
+
+    </div>
+
+</div>
+
+<div class="container mb-5">
+
+<form method="POST" id="examForm">
+
+{% if questions %}
+
+{% for question in questions %}
+
+<div class="card shadow mb-4">
+
+<div class="card-body">
+
+<h5>
+
+Question {{ loop.index }}
+
+</h5>
+
+<p class="fw-bold">
+
+{{ question.question }}
+
+</p>
+
+<hr>
+
+<div class="form-check mb-2">
+
+<input
+class="form-check-input"
+type="radio"
+name="question_{{ question.id }}"
+value="A"
+id="A{{ question.id }}">
+
+<label
+class="form-check-label"
+for="A{{ question.id }}">
+
+A. {{ question.option_a }}
+
+</label>
+
+</div>
+
+<div class="form-check mb-2">
+
+<input
+class="form-check-input"
+type="radio"
+name="question_{{ question.id }}"
+value="B"
+id="B{{ question.id }}">
+
+<label
+class="form-check-label"
+for="B{{ question.id }}">
+
+B. {{ question.option_b }}
+
+</label>
+
+</div>
+
+<div class="form-check mb-2">
+
+<input
+class="form-check-input"
+type="radio"
+name="question_{{ question.id }}"
+value="C"
+id="C{{ question.id }}">
+
+<label
+class="form-check-label"
+for="C{{ question.id }}">
+
+C. {{ question.option_c }}
+
+</label>
+
+</div>
+
+<div class="form-check mb-2">
+
+<input
+class="form-check-input"
+type="radio"
+name="question_{{ question.id }}"
+value="D"
+id="D{{ question.id }}">
+
+<label
+class="form-check-label"
+for="D{{ question.id }}">
+
+D. {{ question.option_d }}
+
+</label>
+
+</div>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+<div class="text-center mb-5">
+
+<button
+type="submit"
+class="btn btn-success btn-lg">
+
+Submit Exam
+
+</button>
+
+</div>
+
+{% else %}
+
+<div class="alert alert-danger text-center">
+
+<h3>
+
+No Questions Available
+
+</h3>
+
+<p>
+
+Please contact the administrator.
+
+</p>
+
+</div>
+
+{% endif %}
+
+</form>
+
+</div>
+
+<footer class="bg-dark text-white text-center py-3">
+
+© 2026 PrepAI | AI Placement Preparation Portal
+
+</footer>
+
+<script>
+
+let totalTime = 30 * 60;
+
+const timer = document.getElementById("timer");
+
+const form = document.getElementById("examForm");
+
+const countdown = setInterval(function(){
+
+    let minutes = Math.floor(totalTime / 60);
+
+    let seconds = totalTime % 60;
+
+    timer.innerHTML =
+        String(minutes).padStart(2,'0') +
+        ":" +
+        String(seconds).padStart(2,'0');
+
+    if(totalTime <= 0){
+
+        clearInterval(countdown);
+
+        alert("Time is over. Exam will be submitted.");
+
+        form.submit();
+
+    }
+
+    totalTime--;
+
+},1000);
+
+document.addEventListener("contextmenu", function(e){
+
+    e.preventDefault();
+
+});
+
+document.addEventListener("copy", function(e){
+
+    e.preventDefault();
+
+});
+
+document.addEventListener("cut", function(e){
+
+    e.preventDefault();
+
+});
+
+window.onbeforeunload = function(){
+
+    return "Your exam is still running.";
+
+};
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PrepAI | Exam Result</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
+    <div class="container">
+
+        <a class="navbar-brand fw-bold" href="/dashboard">
+
+            PrepAI
+
+        </a>
+
+        <div class="ms-auto">
+
+            <a href="/dashboard" class="btn btn-outline-light">
+
+                Dashboard
+
+            </a>
+
+        </div>
+
+    </div>
+
+</nav>
+
+<div class="container py-5">
+
+<div class="row justify-content-center">
+
+<div class="col-lg-8">
+
+<div class="card shadow">
+
+<div class="card-header bg-success text-white text-center">
+
+<h2>
+
+🎉 Exam Completed
+
+</h2>
+
+<p class="mb-0">
+
+Your Result Analysis
+
+</p>
+
+</div>
+
+<div class="card-body">
+
+{% if result %}
+
+<table class="table table-bordered">
+
+<tr>
+
+<th width="35%">
+
+Company
+
+</th>
+
+<td>
+
+{{ result.company }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Year
+
+</th>
+
+<td>
+
+{{ result.year }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Section
+
+</th>
+
+<td>
+
+{{ result.section }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Score
+
+</th>
+
+<td>
+
+{{ result.score }} / {{ result.total }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Percentage
+
+</th>
+
+<td>
+
+{{ ((result.score/result.total)*100)|round(2) }} %
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Performance
+
+</th>
+
+<td>
+
+{% if result.score/result.total >= 0.8 %}
+
+<span class="badge bg-success fs-6">
+
+Excellent
+
+</span>
+
+{% elif result.score/result.total >= 0.6 %}
+
+<span class="badge bg-primary fs-6">
+
+Good
+
+</span>
+
+{% elif result.score/result.total >= 0.4 %}
+
+<span class="badge bg-warning text-dark fs-6">
+
+Average
+
+</span>
+
+{% else %}
+
+<span class="badge bg-danger fs-6">
+
+Needs Improvement
+
+</span>
+
+{% endif %}
+
+</td>
+
+</tr>
+
+</table>
+
+<h4 class="mt-4">
+
+Overall Performance
+
+</h4>
+
+<div class="progress mb-4" style="height:30px;">
+
+<div
+
+class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+
+style="width: {{ ((result.score/result.total)*100) }}%;">
+
+{{ ((result.score/result.total)*100)|round(2) }}%
+
+</div>
+
+</div>
+
+<div class="alert alert-info">
+
+{% if result.score/result.total >= 0.8 %}
+
+<h5>🏆 Excellent!</h5>
+
+<p>
+
+You performed exceptionally well. You are well prepared for placement exams.
+
+</p>
+
+{% elif result.score/result.total >= 0.6 %}
+
+<h5>👍 Good Job!</h5>
+
+<p>
+
+Your performance is good. Keep practicing aptitude and coding to improve further.
+
+</p>
+
+{% elif result.score/result.total >= 0.4 %}
+
+<h5>📚 Average Performance</h5>
+
+<p>
+
+Focus on reasoning, aptitude and coding practice to increase your score.
+
+</p>
+
+{% else %}
+
+<h5>💪 Keep Practicing</h5>
+
+<p>
+
+Don't worry. Solve more company papers and practice daily. Improvement comes with consistency.
+
+</p>
+
+{% endif %}
+
+</div>
+
+<div class="text-center mt-4">
+
+<a href="/dashboard" class="btn btn-primary btn-lg me-3">
+
+🏠 Dashboard
+
+</a>
+<a href="/download_result/{{ result.id }}"
+class="btn btn-danger">
+
+📄 Download PDF
+
+</a>
+
+<a href="/companies" class="btn btn-success btn-lg">
+
+🔄 Take Another Test
+
+</a>
+
+</div>
+
+{% else %}
+
+<div class="alert alert-warning text-center">
+
+<h4>
+
+No Result Found
+
+</h4>
+
+<p>
+
+Please complete an exam first.
+
+</p>
+
+</div>
+
+<div class="text-center">
+
+<a href="/companies" class="btn btn-success">
+
+Start Practice
+
+</a>
+
+</div>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<footer class="bg-dark text-white text-center py-3">
+
+© 2026 PrepAI | AI Placement Preparation Portal
+
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>
