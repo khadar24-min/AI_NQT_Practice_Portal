@@ -53,7 +53,7 @@ def test_ai():
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-app.config["SECRET_KEY"] = "prepai_secret_key_2026"
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = (
     "sqlite:///" + os.path.join(BASE_DIR, "database.db")
