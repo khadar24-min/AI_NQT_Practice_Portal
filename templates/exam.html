@@ -30,6 +30,7 @@
             <span class="text-white">
 
                 {{ company }} | {{ year }} |
+
                 {% if section.section_name %}
                     {{ section.section_name }}
                 {% else %}
@@ -49,17 +50,11 @@
     <div class="alert alert-warning text-center shadow">
 
         <h3>
-
             ⏰ Time Left
-
             <br>
-
             <span id="timer" class="text-danger">
-
                 30:00
-
             </span>
-
         </h3>
 
     </div>
@@ -79,18 +74,16 @@
 <div class="card-body">
 
 <h5>
-
 Question {{ loop.index }}
-
 </h5>
 
 <p class="fw-bold">
-
 {{ question.question }}
-
 </p>
 
 <hr>
+
+<!-- Option A -->
 
 <div class="form-check mb-2">
 
@@ -98,7 +91,7 @@ Question {{ loop.index }}
 class="form-check-input"
 type="radio"
 name="question_{{ question.id }}"
-value="A"
+value="{{ question.option_a }}"
 id="A{{ question.id }}">
 
 <label
@@ -111,13 +104,15 @@ A. {{ question.option_a }}
 
 </div>
 
+<!-- Option B -->
+
 <div class="form-check mb-2">
 
 <input
 class="form-check-input"
 type="radio"
 name="question_{{ question.id }}"
-value="B"
+value="{{ question.option_b }}"
 id="B{{ question.id }}">
 
 <label
@@ -129,6 +124,7 @@ B. {{ question.option_b }}
 </label>
 
 </div>
+<!-- Option C -->
 
 <div class="form-check mb-2">
 
@@ -136,7 +132,7 @@ B. {{ question.option_b }}
 class="form-check-input"
 type="radio"
 name="question_{{ question.id }}"
-value="C"
+value="{{ question.option_c }}"
 id="C{{ question.id }}">
 
 <label
@@ -149,13 +145,15 @@ C. {{ question.option_c }}
 
 </div>
 
+<!-- Option D -->
+
 <div class="form-check mb-2">
 
 <input
 class="form-check-input"
 type="radio"
 name="question_{{ question.id }}"
-value="D"
+value="{{ question.option_d }}"
 id="D{{ question.id }}">
 
 <label
@@ -248,7 +246,6 @@ const countdown = setInterval(function(){
     totalTime--;
 
 },1000);
-
 document.addEventListener("contextmenu", function(e){
 
     e.preventDefault();

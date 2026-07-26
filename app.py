@@ -1,15 +1,50 @@
 import os
+from PyPDF2 import PdfReader
+from datetime import datetime
+from dotenv import load_dotenv
+from google import genai
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for, flash
+
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file
+
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_bcrypt import Bcrypt
 from io import BytesIO
-from flask import send_file
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from flask_mail import Mail, Message
+import random
+import re
 
 app = Flask(__name__)
+
+load_dotenv()
+
+client = genai.Client(
+    api_key=os.getenv("GEMINI_API_KEY")
+)
+
+def ask_gemini(prompt):
+    try:
+        response = client.models.generate_content(
+            model="gemini-flash-latest",
+            contents=prompt
+        )
+        return response.text
+    except Exception as e:
+        return f"AI service is temporarily unavailable: {e}"
+
+@app.route("/test_ai")
+@login_required
+def test_ai():
+
+    answer = ask_gemini(
+        "Introduce yourself as PrepAI Interview Assistant in 3 lines."
+    )
+
+    return f"<h2>{answer}</h2>"
+
 
 # ==========================================
 # App Configuration
@@ -36,6 +71,14 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
+app.config["MAIL_SERVER"] = "smtp.gmail.com"
+app.config["MAIL_PORT"] = 587
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USERNAME"] = "khadarshaikk24@gmail.com"
+app.config["MAIL_PASSWORD"] = "gkyy dcaq wkti mgoe"
+
+mail = Mail(app)
+
 
 # ==========================
 # Database Models
@@ -49,6 +92,22 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(20), nullable=False, default="user")
+
+class InterviewResult(db.Model):
+
+    __tablename__ = "interview_result"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
+    company = db.Column(db.String(100), nullable=False)
+
+    role = db.Column(db.String(100), nullable=False)
+
+    feedback = db.Column(db.Text, nullable=False)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class Company(db.Model):
@@ -124,6 +183,7 @@ def load_user(user_id):
 
 @app.route("/")
 def home():
+    users = User.query.order_by(User.id).all()
     return render_template("index.html")
 
 
@@ -136,18 +196,48 @@ def register():
 
     if request.method == "POST":
 
-        name = request.form["name"]
-        email = request.form["email"]
+        name = request.form["name"].strip()
+        email = request.form["email"].strip()
         password = request.form["password"]
+        confirm = request.form["confirm_password"]
+        otp = request.form["otp"]
 
+        # Allow only Gmail accounts
+        if not email.endswith("@gmail.com"):
+            flash("Only Gmail accounts are allowed.", "danger")
+            return redirect(url_for("register"))
+
+        # Verify OTP and Email
+        if otp != session.get("otp") or email != session.get("email"):
+            flash("Invalid OTP or Email.", "danger")
+            return redirect(url_for("register"))
+
+        # Password validation
+        regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$'
+
+        if not re.match(regex, password):
+            flash(
+                "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character.",
+                "danger"
+            )
+            return redirect(url_for("register"))
+
+        # Confirm password
+        if password != confirm:
+            flash("Passwords do not match.", "danger")
+            return redirect(url_for("register"))
+
+        # Check if email already exists
         user = User.query.filter_by(email=email).first()
 
         if user:
             flash("Email already exists.", "danger")
             return redirect(url_for("register"))
 
+        # Encrypt password
         hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
+        # Create new user
         new_user = User(
             name=name,
             email=email,
@@ -158,12 +248,14 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        flash("Registration Successful. Please Login.", "success")
+        # Clear OTP session
+        session.pop("otp", None)
+        session.pop("email", None)
 
+        flash("Registration Successful. Please Login.", "success")
         return redirect(url_for("login"))
 
     return render_template("register.html")
-
 
 # ==========================
 # Login
@@ -268,6 +360,9 @@ def admin_dashboard():
 
     recent_results = Result.query.order_by(Result.id.desc()).limit(10).all()
 
+    # ADD THIS
+    users = User.query.order_by(User.id).all()
+
     return render_template(
         "admin_dashboard.html",
         total_students=total_students,
@@ -276,7 +371,8 @@ def admin_dashboard():
         total_sections=total_sections,
         total_questions=total_questions,
         total_exams=total_exams,
-        recent_results=recent_results
+        recent_results=recent_results,
+        users=users          # ADD THIS
     )
 
 # ==========================================
@@ -633,8 +729,17 @@ def exam(company, year, section):
                 f"question_{question.id}"
             )
 
+            print("================================")
+            print("Question ID :", question.id)
+            print("Question    :", question.question)
+            print("Selected    :", user_answer)
+            print("Correct     :", question.answer)
+            print("================================")
+
             if user_answer == question.answer:
                 score += 1
+
+        print(f"Final Score : {score}/{len(questions)}")
 
         result = Result(
             user_id=current_user.id,
@@ -661,7 +766,6 @@ def exam(company, year, section):
         section=selected_section,
         questions=questions
     )
-
 # ==========================================
 # Result Page
 # ==========================================
@@ -913,6 +1017,591 @@ def delete_section(id):
 
     return redirect(url_for('view_sections'))
 
+@app.route("/admin/students")
+@login_required
+def view_students():
+
+    if current_user.role != "admin":
+        return redirect(url_for("dashboard"))
+
+    students = User.query.filter_by(role="user").all()
+
+    return render_template("view_students.html", students=students)
+
+# ==========================================
+# send otp
+# ==========================================
+
+from flask import jsonify, session, request
+from flask_mail import Message
+import random
+
+@app.route("/send_otp", methods=["POST"])
+def send_otp():
+
+    email = request.form.get("email", "").strip()
+
+    # Validate Gmail address
+    gmail_pattern = r'^[a-zA-Z0-9._%+-]+@gmail\.com$'
+
+    if not re.match(gmail_pattern, email):
+        return jsonify({
+            "status": "error",
+            "message": "Please enter a valid Gmail address."
+        })
+
+    # Generate 6-digit OTP
+    otp = str(random.randint(100000, 999999))
+
+    # Store OTP and email in session
+    session["otp"] = otp
+    session["email"] = email
+
+    # Create email
+    msg = Message(
+        subject="PrepAI - Email Verification",
+        sender=app.config["MAIL_USERNAME"],
+        recipients=[email]
+    )
+
+    # HTML email
+    msg.html = f"""
+    <!DOCTYPE html>
+    <html>
+    <body style="font-family:Arial,sans-serif;background:#f4f4f4;padding:20px;">
+
+        <div style="max-width:600px;margin:auto;background:#ffffff;
+                    padding:30px;border-radius:10px;
+                    box-shadow:0 0 10px rgba(0,0,0,0.1);">
+
+            <h2 style="color:#0d6efd;text-align:center;">
+                PrepAI
+            </h2>
+
+            <p>Hello,</p>
+
+            <p>Thank you for registering with <b>PrepAI</b>.</p>
+
+            <p>Your One-Time Password (OTP) is:</p>
+
+            <h1 style="
+                text-align:center;
+                color:#0d6efd;
+                letter-spacing:5px;">
+                {otp}
+            </h1>
+
+            <p>This OTP is valid for <b>5 minutes</b>.</p>
+
+            <p>Please do not share this OTP with anyone.</p>
+
+            <hr>
+
+            <p style="text-align:center;color:gray;">
+                PrepAI - AI Based Placement Preparation Portal
+            </p>
+
+        </div>
+
+    </body>
+    </html>
+    """
+
+    try:
+
+        mail.send(msg)
+
+        return jsonify({
+            "status": "success",
+            "message": "OTP has been sent successfully."
+        })
+
+    except Exception as e:
+
+        print(e)
+
+        return jsonify({
+            "status": "error",
+            "message": "Failed to send OTP."
+        })
+
+class ResultAnswer(db.Model):
+    __tablename__ = "result_answers"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    result_id = db.Column(
+        db.Integer,
+        db.ForeignKey("results.id"),
+        nullable=False
+    )
+
+    question_id = db.Column(
+        db.Integer,
+        db.ForeignKey("questions.id"),
+        nullable=False
+    )
+
+    selected_answer = db.Column(db.String(255))
+
+    result = db.relationship("Result", backref="answers")
+    question = db.relationship("Question")
+
+    
+@app.route("/topic_practice")
+@login_required
+def topic_practice():
+    return render_template("topic_practice.html")
+
+
+@app.route("/mock_test")
+@login_required
+def mock_test():
+    return render_template("mock_test.html")
+
+@app.route("/ai_interview")
+@login_required
+def ai_interview():
+    return render_template("ai_interview.html")
+
+
+@app.route("/start_interview", methods=["POST"])
+@login_required
+def start_interview():
+
+    company = request.form["company"]
+    role = request.form["role"]
+    difficulty = request.form["difficulty"]
+    mode = request.form["mode"]
+
+    prompt = f"""
+You are an expert interviewer.
+
+Company: {company}
+Role: {role}
+Difficulty: {difficulty}
+Interview Type: {mode}
+
+Ask ONLY ONE interview question.
+
+Do not give the answer.
+Do not explain anything.
+Return only the question.
+"""
+
+    question = ask_gemini(prompt)
+
+    # Store interview details in session
+    session["company"] = company
+    session["role"] = role
+    session["difficulty"] = difficulty
+    session["mode"] = mode
+    session["question_no"] = 1
+    session["history"] = []
+
+    return render_template(
+        "interview.html",
+        company=company,
+        role=role,
+        difficulty=difficulty,
+        mode=mode,
+        question=question,
+        question_no=1
+    )
+
+
+@app.route("/submit_answer", methods=["POST"])
+@login_required
+def submit_answer():
+
+    # Get current question and user's answer
+    question = request.form["question"]
+    answer = request.form["answer"]
+
+    # Get interview history from session
+    history = session.get("history", [])
+
+    # Save current question and answer
+    history.append({
+        "question": question,
+        "answer": answer
+    })
+
+    session["history"] = history
+
+    # Current question number
+    question_no = session.get("question_no", 1)
+
+    # If interview is finished
+    if question_no >= 10:
+
+        prompt = f"""
+You are an expert technical interviewer.
+
+Company: {session['company']}
+Role: {session['role']}
+Difficulty: {session['difficulty']}
+Interview Type: {session['mode']}
+
+Below is the complete interview.
+
+{history}
+
+Evaluate the candidate.
+
+Return the evaluation in the following format:
+
+Overall Score: __/10
+
+Technical Score: __/10
+
+Communication Score: __/10
+
+Confidence Score: __/10
+
+Strengths:
+- Point 1
+- Point 2
+
+Weaknesses:
+- Point 1
+- Point 2
+
+Ideal Answer:
+(Provide an ideal answer.)
+
+Hiring Recommendation:
+Hire / Consider / Reject
+
+Suggestions:
+- Point 1
+- Point 2
+"""
+
+        feedback = ask_gemini(prompt)
+
+        result = InterviewResult(
+            user_id=current_user.id,
+            company=session["company"],
+            role=session["role"],
+            feedback=feedback
+        )
+
+        db.session.add(result)
+        db.session.commit()
+
+        # Clear interview session
+        session.pop("history", None)
+        session.pop("question_no", None)
+
+        return render_template(
+            "feedback.html",
+            company=session["company"],
+            role=session["role"],
+            question="Interview Completed",
+            answer="You successfully completed all 10 questions.",
+            feedback=feedback
+        )
+
+    # Otherwise generate the next question
+    next_question_no = question_no + 1
+
+    prompt = f"""
+You are an expert interviewer.
+
+Company: {session['company']}
+Role: {session['role']}
+Difficulty: {session['difficulty']}
+Interview Type: {session['mode']}
+
+Previous Interview History:
+
+{history}
+
+Generate ONLY Question {next_question_no}.
+
+Rules:
+- Do not repeat previous questions.
+- Ask a new relevant technical or HR question.
+- Return ONLY the question.
+"""
+
+    next_question = ask_gemini(prompt)
+
+    session["question_no"] = next_question_no
+
+    return render_template(
+        "interview.html",
+        company=session["company"],
+        role=session["role"],
+        difficulty=session["difficulty"],
+        mode=session["mode"],
+        question=next_question,
+        question_no=next_question_no
+    )
+
+@app.route("/interview_history")
+@login_required
+def interview_history():
+
+    interviews = InterviewResult.query.filter_by(
+        user_id=current_user.id
+    ).order_by(
+        InterviewResult.created_at.desc()
+    ).all()
+
+    return render_template(
+        "interview_history.html",
+        interviews=interviews
+    )
+
+@app.route("/resume_analyzer", methods=["GET", "POST"])
+@login_required
+def resume_analyzer():
+
+    if request.method == "POST":
+
+        file = request.files["resume"]
+
+        reader = PdfReader(file)
+
+        text = ""
+
+        for page in reader.pages:
+            text += page.extract_text() or ""
+
+        prompt = f"""
+You are an ATS Resume Reviewer.
+
+Analyze this resume.
+
+Resume:
+
+{text}
+
+Give:
+
+1. ATS Score (/100)
+
+2. Strengths
+
+3. Weaknesses
+
+4. Missing Skills
+
+5. Improvement Suggestions
+
+6. Overall Recommendation
+"""
+
+        feedback = ask_gemini(prompt)
+
+        return render_template(
+            "resume_feedback.html",
+            feedback=feedback
+        )
+
+    return render_template("resume_analyzer.html")
+
+@app.route("/roadmap", methods=["GET", "POST"])
+@login_required
+def roadmap():
+
+    if request.method == "POST":
+
+        company = request.form["company"]
+        language = request.form["language"]
+        year = request.form["year"]
+
+        prompt = f"""
+You are a placement mentor.
+
+Student Year: {year}
+Target Company: {company}
+Programming Language: {language}
+
+Generate a complete preparation roadmap.
+
+Include:
+
+1. Aptitude Topics
+2. Coding Topics
+3. Core Subjects
+4. HR Preparation
+5. Projects to Build
+6. Weekly Plan
+7. Interview Tips
+
+Return in a clean format.
+"""
+
+        roadmap = ask_gemini(prompt)
+
+        return render_template(
+            "roadmap_result.html",
+            roadmap=roadmap
+        )
+
+    return render_template("roadmap.html")
+
+@app.route("/chatbot", methods=["GET", "POST"])
+@login_required
+def chatbot():
+
+    if request.method == "POST":
+
+        question = request.form["question"]
+
+        prompt = f"""
+You are PrepAI Assistant.
+
+Your job is to help students preparing for placements.
+
+You can answer only about:
+
+- Aptitude
+- Coding
+- Programming
+- DBMS
+- OS
+- CN
+- OOP
+- Java
+- Python
+- C
+- C++
+- SQL
+- HR Interview
+- Technical Interview
+- Resume
+- Placement Preparation
+- Career Guidance
+
+Question:
+{question}
+
+If the question is unrelated to placement, politely say that you only assist with placement preparation.
+
+Keep answers clear and concise.
+"""
+
+        answer = ask_gemini(prompt)
+
+        return render_template(
+            "chatbot.html",
+            question=question,
+            answer=answer
+        )
+
+    return render_template("chatbot.html")
+
+@app.route("/delete_user/<int:user_id>")
+@login_required
+def delete_user(user_id):
+
+    if current_user.email != "khadarshaikk24@gmail.com":
+        flash("Access Denied!", "danger")
+        return redirect(url_for("dashboard"))
+
+    user = User.query.get_or_404(user_id)
+
+    # Prevent admin from deleting themselves
+    if user.email == "khadarshaikk24@gmail.com":
+        flash("Admin account cannot be deleted.", "warning")
+        return redirect(url_for("admin_dashboard"))
+
+    db.session.delete(user)
+    db.session.commit()
+
+    flash("User deleted successfully!", "success")
+
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/forgot_password", methods=["GET", "POST"])
+def forgot_password():
+
+    if request.method == "POST":
+
+        email = request.form["email"]
+
+        user = User.query.filter_by(email=email).first()
+
+        if not user:
+            flash("Email not registered!", "danger")
+            return redirect(url_for("forgot_password"))
+
+        otp = str(random.randint(100000, 999999))
+
+        session["reset_email"] = email
+        session["reset_otp"] = otp
+
+        msg = Message(
+            "PrepAI Password Reset OTP",
+            sender=app.config["MAIL_USERNAME"],
+            recipients=[email]
+        )
+
+        msg.body = f"Your password reset OTP is: {otp}"
+
+        mail.send(msg)
+
+        flash("OTP sent to your email.", "success")
+
+        return redirect(url_for("verify_reset_otp"))
+
+    return render_template("forgot_password.html")
+
+@app.route("/verify_reset_otp", methods=["GET", "POST"])
+def verify_reset_otp():
+
+    if request.method == "POST":
+
+        otp = request.form["otp"]
+
+        if otp == session.get("reset_otp"):
+
+            flash("OTP Verified Successfully!", "success")
+
+            return redirect(url_for("reset_password"))
+
+        else:
+
+            flash("Invalid OTP!", "danger")
+
+    return render_template("verify_reset_otp.html")
+
+@app.route("/reset_password", methods=["GET", "POST"])
+def reset_password():
+
+    if "reset_email" not in session:
+        return redirect(url_for("forgot_password"))
+
+    if request.method == "POST":
+
+        password = request.form["password"]
+        confirm_password = request.form["confirm_password"]
+
+        if password != confirm_password:
+            flash("Passwords do not match!", "danger")
+            return redirect(url_for("reset_password"))
+
+        user = User.query.filter_by(
+            email=session["reset_email"]
+        ).first()
+
+        user.password = bcrypt.generate_password_hash(password).decode("utf-8")
+
+        db.session.commit()
+
+        session.pop("reset_email", None)
+        session.pop("reset_otp", None)
+
+        flash("Password changed successfully! Please login.", "success")
+
+        return redirect(url_for("login"))
+
+    return render_template("reset_password.html")
+
 # ==========================================
 # Create Database
 # ==========================================
@@ -920,14 +1609,14 @@ def delete_section(id):
 with app.app_context():
     db.create_all()
 
-    admin = User.query.filter_by(email="admin@gmail.com").first()
-    default_admin_password = "admin123"
+    admin = User.query.filter_by(email="khadarshaikk24@gmail.com").first()
+    default_admin_password = "Khadar@5750"
     default_admin_hash = bcrypt.generate_password_hash(default_admin_password).decode("utf-8")
 
     if not admin:
         admin = User(
             name="Administrator",
-            email="admin@gmail.com",
+            email="khadarshaikk24@gmail.com",
             password=default_admin_hash,
             role="admin"
         )
