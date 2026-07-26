@@ -1212,6 +1212,14 @@ Return only the question.
         question_no=1
     )
 
+@app.route("/check_env")
+def check_env():
+    return {
+        "MAIL_USERNAME": os.getenv("MAIL_USERNAME"),
+        "MAIL_PASSWORD_EXISTS": bool(os.getenv("MAIL_PASSWORD")),
+        "GEMINI_EXISTS": bool(os.getenv("GEMINI_API_KEY")),
+        "SECRET_EXISTS": bool(os.getenv("SECRET_KEY"))
+    }
 
 @app.route("/submit_answer", methods=["POST"])
 @login_required
