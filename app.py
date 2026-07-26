@@ -1,4 +1,5 @@
 import os
+import traceback
 from PyPDF2 import PdfReader
 from datetime import datetime
 from dotenv import load_dotenv
@@ -74,9 +75,8 @@ login_manager.login_view = "login"
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
 app.config["MAIL_PORT"] = 587
 app.config["MAIL_USE_TLS"] = True
-app.config["MAIL_USERNAME"] = "khadarshaikk24@gmail.com"
-app.config["MAIL_PASSWORD"] = "gkyy dcaq wkti mgoe"
-
+app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
+app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
 mail = Mail(app)
 
 
@@ -1117,13 +1117,14 @@ def send_otp():
         })
 
     except Exception as e:
+    
+          traceback.print_exc()
+          print("SMTP ERROR:", repr(e))
 
-        print(e)
-
-        return jsonify({
-            "status": "error",
-            "message": "Failed to send OTP."
-        })
+    return jsonify({
+        "status": "error",
+        "message": "Failed to send OTP."
+    })
 
 class ResultAnswer(db.Model):
     __tablename__ = "result_answers"
