@@ -18,6 +18,8 @@ from flask_mail import Mail, Message
 import random
 import re
 
+load_dotenv()
+
 app = Flask(__name__)
 
 load_dotenv()
@@ -54,7 +56,7 @@ def test_ai():
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-
+        
 app.config["SQLALCHEMY_DATABASE_URI"] = (
     "sqlite:///" + os.path.join(BASE_DIR, "database.db")
 )
@@ -73,13 +75,14 @@ login_manager.init_app(app)
 login_manager.login_view = "login"
 
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
-app.config["MAIL_PORT"] = 465
-app.config["MAIL_USE_TLS"] = False
-app.config["MAIL_USE_SSL"] = True
+app.config["MAIL_PORT"] = 587
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USE_SSL"] = False
+
 app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
-app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_USERNAME")
 
+app.config["MAIL_DEFAULT_SENDER"] = "khadarshaikk24@gmail.com"
 mail = Mail(app)
 
 # ==========================
@@ -1041,6 +1044,10 @@ import random
 @app.route("/send_otp", methods=["POST"])
 def send_otp():
 
+    import random
+    import re
+    import traceback
+
     email = request.form.get("email", "").strip()
 
     # Validate Gmail address
@@ -1055,26 +1062,31 @@ def send_otp():
     # Generate 6-digit OTP
     otp = str(random.randint(100000, 999999))
 
-    # Store OTP and email in session
+    # Store OTP in session
     session["otp"] = otp
     session["email"] = email
 
-    # Create email
-    msg = Message(
-        subject="PrepAI - Email Verification",
-        sender=app.config["MAIL_USERNAME"],
-        recipients=[email]
-    )
+    try:
 
-    # HTML email
-    msg.html = f"""
-    <!DOCTYPE html>
-    <html>
-    <body style="font-family:Arial,sans-serif;background:#f4f4f4;padding:20px;">
+        msg = Message(
+            subject="PrepAI - Email Verification",
+            sender=app.config["MAIL_DEFAULT_SENDER"],
+            recipients=[email]
+        )
 
-        <div style="max-width:600px;margin:auto;background:#ffffff;
-                    padding:30px;border-radius:10px;
-                    box-shadow:0 0 10px rgba(0,0,0,0.1);">
+        msg.html = f"""
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family:Arial,sans-serif;background:#f4f4f4;padding:20px;">
+
+        <div style="
+            max-width:600px;
+            margin:auto;
+            background:#ffffff;
+            padding:30px;
+            border-radius:10px;
+            box-shadow:0 0 10px rgba(0,0,0,0.1);
+        ">
 
             <h2 style="color:#0d6efd;text-align:center;">
                 PrepAI
@@ -1089,7 +1101,8 @@ def send_otp():
             <h1 style="
                 text-align:center;
                 color:#0d6efd;
-                letter-spacing:5px;">
+                letter-spacing:5px;
+            ">
                 {otp}
             </h1>
 
@@ -1105,29 +1118,30 @@ def send_otp():
 
         </div>
 
-    </body>
-    </html>
-    """
-
-    try:
+        </body>
+        </html>
+        """
 
         mail.send(msg)
 
         return jsonify({
             "status": "success",
-            "message": "OTP has been sent successfully."
+            "message": "OTP sent successfully."
         })
 
     except Exception as e:
+
+        traceback.print_exc()
+
+        print("=" * 60)
+        print("SMTP ERROR:", repr(e))
+        print("=" * 60)
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
     
-          traceback.print_exc()
-          print("SMTP ERROR:", repr(e))
-
-    return jsonify({
-        "status": "error",
-        "message": "Failed to send OTP."
-    })
-
 class ResultAnswer(db.Model):
     __tablename__ = "result_answers"
 
