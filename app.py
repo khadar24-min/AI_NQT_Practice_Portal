@@ -83,6 +83,8 @@ app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
 
 app.config["MAIL_DEFAULT_SENDER"] = "khadarshaikk24@gmail.com"
+app.config["MAIL_TIMEOUT"] = 15   
+
 mail = Mail(app)
 
 # ==========================
