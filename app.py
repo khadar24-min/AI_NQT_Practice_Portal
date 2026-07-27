@@ -1124,7 +1124,39 @@ def send_otp():
         </html>
         """
 
-        mail.send(msg)
+        import smtplib
+        import os
+
+        print("STEP 1")
+
+        server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
+        print("STEP 2")
+
+        server.ehlo()
+        print("STEP 3")
+
+        server.starttls()
+        print("STEP 4")
+
+        server.login(
+            os.getenv("MAIL_USERNAME"),
+            os.getenv("MAIL_PASSWORD")
+        )
+        print("STEP 5")
+
+        server.sendmail(
+            os.getenv("MAIL_USERNAME"),
+            email,
+            f"Subject: PrepAI OTP\n\nYour OTP is {otp}"
+        )
+        print("STEP 6")
+
+        server.quit()
+
+        return jsonify({
+            "status": "success",
+            "message": "OTP sent successfully."
+        })
 
         return jsonify({
             "status": "success",
