@@ -57,10 +57,7 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
         
-app.config["SQLALCHEMY_DATABASE_URI"] = (
-    "sqlite:///" + os.path.join(BASE_DIR, "database.db")
-)
-
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 UPLOAD_FOLDER = "uploads"
@@ -154,7 +151,7 @@ class Question(db.Model):
     option_b = db.Column(db.String(255))
     option_c = db.Column(db.String(255))
     option_d = db.Column(db.String(255))
-    answer = db.Column(db.String(10))
+    answer = db.Column(db.String(255))
     explanation = db.Column(db.Text)
     difficulty = db.Column(db.String(20))
 
