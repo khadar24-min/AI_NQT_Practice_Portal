@@ -1534,10 +1534,25 @@ def delete_user(user_id):
         flash("Admin account cannot be deleted.", "warning")
         return redirect(url_for("admin_dashboard"))
 
+    # Delete data linked to this user before deleting the user
+    ResultAnswer.query.filter(
+        ResultAnswer.result_id.in_(
+            db.session.query(Result.id).filter_by(user_id=user.id)
+        )
+    ).delete(synchronize_session=False)
+
+    Result.query.filter_by(user_id=user.id).delete(
+        synchronize_session=False
+    )
+
+    InterviewResult.query.filter_by(user_id=user.id).delete(
+        synchronize_session=False
+    )
+
     db.session.delete(user)
     db.session.commit()
 
-    flash("User deleted successfully!", "success")
+    flash("User and related data deleted successfully!", "success")
 
     return redirect(url_for("admin_dashboard"))
 
