@@ -4,3 +4,7 @@ __pycache__/
 .env
 instance/
 database.db
+# Local recovered databases
+*.db
+*.sqlite
+*.sqlite3
