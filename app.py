@@ -24,11 +24,12 @@ app = Flask(__name__)
 
 load_dotenv()
 
-client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
 def ask_gemini(prompt):
+    if client is None:
+        return "AI features are unavailable until GEMINI_API_KEY is configured."
     try:
         response = client.models.generate_content(
             model="gemini-flash-latest",
@@ -55,9 +56,12 @@ def test_ai():
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-        
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY") or os.urandom(32)
+database_url = os.getenv("DATABASE_URL")
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True} if database_url else {}
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 UPLOAD_FOLDER = "uploads"
@@ -1223,15 +1227,6 @@ Return only the question.
         question_no=1
     )
 
-@app.route("/check_env")
-def check_env():
-    return {
-        "MAIL_USERNAME": os.getenv("MAIL_USERNAME"),
-        "MAIL_PASSWORD_EXISTS": bool(os.getenv("MAIL_PASSWORD")),
-        "GEMINI_EXISTS": bool(os.getenv("GEMINI_API_KEY")),
-        "SECRET_EXISTS": bool(os.getenv("SECRET_KEY"))
-    }
-
 @app.route("/submit_answer", methods=["POST"])
 @login_required
 def submit_answer():
@@ -1644,35 +1639,24 @@ def reset_password():
 # ==========================================
 
 with app.app_context():
-    db.create_all()
-
-    admin = User.query.filter_by(email="khadarshaikk24@gmail.com").first()
-    default_admin_password = "Khadar@5750"
-    default_admin_hash = bcrypt.generate_password_hash(default_admin_password).decode("utf-8")
-
-    if not admin:
-        admin = User(
-            name="Administrator",
-            email="khadarshaikk24@gmail.com",
-            password=default_admin_hash,
-            role="admin"
-        )
-        db.session.add(admin)
-        db.session.commit()
-        print("✅ Admin account created successfully!")
+    if app.config["SQLALCHEMY_DATABASE_URI"]:
+        db.create_all()
+        # Optional first-admin bootstrap. Existing accounts are never reset.
+        admin_email = os.getenv("ADMIN_EMAIL")
+        admin_password = os.getenv("ADMIN_PASSWORD")
+        if admin_email and admin_password:
+            existing_admin = User.query.filter_by(email=admin_email).first()
+            if not existing_admin:
+                admin = User(
+                    name=os.getenv("ADMIN_NAME", "PrepAI Administrator"),
+                    email=admin_email,
+                    password=bcrypt.generate_password_hash(admin_password).decode("utf-8"),
+                    role="admin"
+                )
+                db.session.add(admin)
+                db.session.commit()
     else:
-        changed = False
-        if admin.role != "admin":
-            admin.role = "admin"
-            changed = True
-            print("⚠️ Fixed admin role for existing admin account.")
-        if not bcrypt.check_password_hash(admin.password, default_admin_password):
-            admin.password = default_admin_hash
-            changed = True
-            print("⚠️ Reset admin password to the default admin123.")
-        if changed:
-            db.session.commit()
-            print("✅ Admin account metadata corrected.")
+        app.logger.error("DATABASE_URL is missing. Configure the Supabase PostgreSQL connection string.")
 
 
 # ==========================================
