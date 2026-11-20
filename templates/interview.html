@@ -49,7 +49,7 @@
   const start = document.getElementById('startListening');
   const stop = document.getElementById('stopListening');
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let recognition = null;
+  let recognition = null;\n  let transcriptBase = "";
   document.getElementById('speakQuestion').addEventListener('click', () => {
     if (!('speechSynthesis' in window)) { status.textContent = 'Speech playback is not supported in this browser.'; return; }
     window.speechSynthesis.cancel();
@@ -65,15 +65,18 @@
     recognition.lang = 'en-IN';
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.onstart = () => { status.textContent = 'Listening… speak your answer'; start.disabled = true; stop.disabled = false; };
+    recognition.onstart = () => { transcriptBase = answer.value.trim(); status.textContent = 'Listening… speak your answer'; start.disabled = true; stop.disabled = false; };
     recognition.onresult = event => {
-      let finalText = answer.value;
+      // Rebuild from this recognition session's full result list. Appending to
+      // answer.value on every event duplicated phrases in some browsers.
+      const finalParts = [];
       let interim = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) finalText += (finalText ? ' ' : '') + event.results[i][0].transcript;
+      for (let i = 0; i < event.results.length; i++) {
+        if (event.results[i].isFinal) finalParts.push(event.results[i][0].transcript.trim());
         else interim += event.results[i][0].transcript;
       }
-      answer.value = finalText;
+      const spokenText = finalParts.filter(Boolean).join(' ');
+      answer.value = [transcriptBase, spokenText].filter(Boolean).join(' ').trim();
       status.textContent = interim ? 'Hearing: ' + interim : 'Answer captured';
     };
     recognition.onerror = event => { status.textContent = 'Voice input: ' + event.error + '. You can type instead.'; };
