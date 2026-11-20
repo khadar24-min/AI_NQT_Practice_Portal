@@ -158,6 +158,10 @@ class Question(db.Model):
     answer = db.Column(db.String(255))
     explanation = db.Column(db.Text)
     difficulty = db.Column(db.String(20))
+    source_type = db.Column(db.String(40), nullable=False, default="generated_practice")
+    source_name = db.Column(db.String(255), nullable=False, default="PrepAI generated practice")
+    source_url = db.Column(db.Text)
+    verified_at = db.Column(db.DateTime(timezone=True))
 
 
 class Result(db.Model):
