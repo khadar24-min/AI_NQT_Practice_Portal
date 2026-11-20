@@ -24,9 +24,9 @@
 <header class="page-hero">
   <div class="container">
     <div class="eyebrow">{{ company|upper }} · {{ year }} PRACTICE SET</div>
-    <h1>Choose your section.</h1>
-    <p>Work through one focused assessment at a time. Your answers and score are saved when you submit.</p>
-    <div class="page-meta">{{ sections|length }} sections · practice material</div>
+    <h1>Choose your practice area.</h1>
+    <p>Build your skills with company-pattern questions. Your answers and score are saved when you submit.</p>
+    <div class="page-meta">{{ sections|length }} practice areas · generated practice material</div>
   </div>
 </header>
 <main class="container py-5">
@@ -34,7 +34,7 @@
     {% for section in sections %}
     <div class="col-md-6 col-lg-4">
       <article class="content-card section-tile">
-        <div class="section-tile-top"><span class="section-index">0{{ loop.index }}</span><span class="section-tag">TIMED PRACTICE</span></div>
+        <div class="section-tile-top"><span class="section-index">0{{ loop.index }}</span><span class="section-tag">PRACTICE SET</span></div>
         <h2>{{ section.name }}</h2>
         <p>{{ section.questions }} questions available in this section.</p>
         <div class="section-stats">
@@ -42,7 +42,7 @@
           <span><strong>{{ [section.questions, 30]|min }}</strong> Min</span>
         </div>
         {% if section.questions > 0 %}
-        <a href="{{ url_for('exam_by_id', section_id=section.id) }}" class="btn btn-card">Start assessment <span>→</span></a>
+        <a href="{{ url_for('exam_by_id', section_id=section.id) }}" class="btn btn-card">Start practice <span>→</span></a>
         {% else %}
         <span class="btn btn-card disabled" aria-disabled="true">Coming soon</span>
         {% endif %}
@@ -60,7 +60,7 @@
       <div class="col-md-4"><div class="exam-note-item"><strong>02</strong><span>No negative marking is applied.</span></div></div>
       <div class="col-md-4"><div class="exam-note-item"><strong>03</strong><span>Your result is saved after submission.</span></div></div>
     </div>
-    <p class="source-note mt-3 mb-0">PrepAI practice sets are not represented as official company papers unless a verified source is provided.</p>
+    <p class="source-note mt-3 mb-0">Transparency note: these are generated practice questions, not verified official previous-year papers. Original paper sources will be identified separately when available.</p>
   </section>
 </main>
 <footer class="site-footer"><div class="container d-flex flex-wrap justify-content-between gap-2"><span>PrepAI · Placement practice</span><a href="{{ url_for('papers', company=company) }}">Back to {{ company }} papers</a></div></footer>
