@@ -101,3 +101,30 @@ body.app-page{background:#f2f4f0!important}
 .btn-card{border:1px solid #e5e9ef!important;border-radius:8px!important;padding:13px!important;margin-top:12px!important;text-align:left!important;font-size:11px!important;color:#315fe7!important;font-weight:800!important}
 .site-footer{background:#101d33!important;margin-top:40px!important;padding:22px 0!important;font-size:10px}
 @media(max-width:767px){.site-nav{height:66px}.dash-top{padding:47px 0 65px!important}.dash-top h1{letter-spacing:-2px!important}.dash-top p{font-size:13px}.metric-card{padding:15px!important;min-height:115px}.metric-value{font-size:29px!important}.action-card{min-height:155px!important;padding:14px!important}.action-card strong{font-size:15px!important}.dash-main>.row:nth-child(2) .col-lg-8>.dash-panel>.panel-head{padding-bottom:15px!important}.dash-main>.row:nth-child(2) .col-lg-8>.dash-panel>.panel-head .eyebrow{display:none}}
+
+
+/* PrepAI depth layer — tactile 3D surfaces, not a flat template */
+:root{--pa-depth-shadow:0 24px 48px rgba(12,28,55,.13),0 7px 14px rgba(12,28,55,.07)}
+body{perspective:1400px}
+.site-nav{position:relative;z-index:20;backdrop-filter:blur(18px);box-shadow:0 9px 30px #07152b30!important}
+.site-nav:after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,#9db9ff70,transparent)}
+.page-hero,.dash-top,.hero{position:relative;isolation:isolate;overflow:hidden}
+.dash-top:after{width:420px;height:420px;right:9%;top:-210px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d9f36a 0%,#75d9d0 13%,#3868df 37%,#263b77 58%,transparent 72%);filter:drop-shadow(0 35px 35px #0006);opacity:.72;transform:rotateX(58deg) rotateZ(-24deg) scaleY(.78);animation:pa-orb-float 9s ease-in-out infinite}
+.dash-top .container{position:relative;z-index:2}
+.dash-top h1{text-shadow:0 5px 24px #0005}
+.metric-card,.dash-panel,.content-card,.feature-panel,.pa-card,.paper,.topic-card,.result-card,.login-card,.form-container,.card{transform-style:preserve-3d;transition:transform .28s cubic-bezier(.2,.75,.25,1),box-shadow .28s ease,border-color .28s ease!important}
+.metric-card:hover,.content-card:hover,.feature-panel:hover,.pa-card:hover,.paper:hover,.topic-card:hover,.result-card:hover,.card:hover{transform:translateY(-7px) rotateX(1.4deg) rotateY(-1.2deg)!important;box-shadow:var(--pa-depth-shadow)!important}
+.action-card{transform-style:preserve-3d;box-shadow:0 5px 0 #dce3ed,0 9px 18px #14233d0c!important;transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s ease,background .25s ease!important}
+.action-card .action-icon{transform:translateZ(16px);box-shadow:0 6px 12px #243b7020}
+.action-card strong,.action-card small{transform:translateZ(9px)}
+.action-card:hover{transform:translateY(-8px) rotateX(3deg) rotateY(-2deg)!important;box-shadow:0 8px 0 #d4ddec,0 24px 35px #14233d20!important}
+.action-card:active,.btn:active{transform:translateY(2px) scale(.99)!important;box-shadow:0 2px 0 #cbd5e5!important}
+.btn-primary,.btn-success,.btn-nav-primary,.btn-hero-primary,.start{box-shadow:0 5px 0 #2147ad,0 10px 22px #3868df30!important;transition:transform .2s ease,box-shadow .2s ease!important}
+.btn-primary:hover,.btn-success:hover,.btn-nav-primary:hover,.btn-hero-primary:hover,.start:hover{transform:translateY(-3px)!important;box-shadow:0 8px 0 #2147ad,0 18px 28px #3868df38!important}
+.metric-icon,.feature-icon,.ico,.pa-heading-icon{box-shadow:0 5px 0 #dce5fa,0 9px 18px #1d3d7620;transform:translateZ(12px)}
+.form-control,.form-select,input,textarea,select{box-shadow:inset 0 2px 4px #152a4809!important}
+.tip-box{box-shadow:0 5px 0 #b9d34f,0 13px 25px #9eb83a25;transform:translateZ(8px)}
+.pa-chat-card,.dash-panel{box-shadow:0 14px 0 #e3e8f0,0 24px 50px #172b4b12!important}
+@keyframes pa-orb-float{0%,100%{transform:rotateX(58deg) rotateZ(-24deg) translateY(0) scaleY(.78)}50%{transform:rotateX(58deg) rotateZ(-18deg) translateY(18px) scaleY(.78)}}
+@media(max-width:767px){.dash-top:after{right:-160px;top:-160px;width:310px;height:310px;opacity:.42}.action-card:hover,.metric-card:hover,.content-card:hover,.feature-panel:hover,.pa-card:hover,.paper:hover,.topic-card:hover,.result-card:hover,.card:hover{transform:translateY(-3px)!important}}
+@media(prefers-reduced-motion:reduce){.dash-top:after{animation:none!important}.action-card,.metric-card,.content-card,.feature-panel,.pa-card,.paper,.topic-card,.result-card,.card{transition:none!important}}
