@@ -630,30 +630,24 @@ def logout():
 @app.route("/companies")
 @login_required
 def companies():
-    company_list = [
-        "TCS",
-        "Accenture",
-        "Infosys",
-        "Wipro",
-        "Capgemini",
-        "Cognizant",
-        "Deloitte",
-        "EY"
-    ]
-
+    company_list = Company.query.order_by(Company.company_name.asc()).all()
     return render_template("companies.html", companies=company_list)
 
 
 # ==========================================
-# Previous Papers
+# Company practice papers
 # ==========================================
 
 @app.route("/papers/<company>")
 @login_required
 def papers(company):
-    years = [2025, 2024, 2023, 2022, 2021]
-
-    return render_template("papers.html", company=company, years=years)
+    company_obj = Company.query.filter_by(company_name=company).first_or_404()
+    papers_list = (Paper.query
+                   .filter_by(company_id=company_obj.id)
+                   .order_by(Paper.year.desc())
+                   .all())
+    return render_template("papers.html", company=company_obj.company_name,
+                           papers=papers_list, years=[p.year for p in papers_list])
 
 
 # ==========================================
