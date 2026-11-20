@@ -27,7 +27,7 @@ def create_practice_blueprint(db, Company, Paper, Section, Question, Result):
         "technical": {
             "name": "Technical MCQs", "icon": "</>",
             "description": "Programming fundamentals, DBMS, operating systems and computer networks.",
-            "aliases": ("technical", "dbms", "operating system", "computer network", "java", "python", "programming fundamentals", "computer fundamentals")
+            "aliases": ("technical", "dbms", "operating system", "computer network", "java", "python", "programming fundamentals", "computer fundamentals", "fundamental")
         },
         "coding": {
             "name": "Coding Practice", "icon": "{ }",
