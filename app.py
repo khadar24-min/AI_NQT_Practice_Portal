@@ -703,7 +703,7 @@ def sections(company, year):
         sections=section_data
     )
 
-@app.route("/exam/<company>/<int:year>/<section>", methods=["GET", "POST"])
+@app.route("/exam/<company>/<int:year>/<path:section>", methods=["GET", "POST"])
 @login_required
 def exam(company, year, section):
 
@@ -719,7 +719,18 @@ def exam(company, year, section):
     selected_section = Section.query.filter_by(
         paper_id=paper.id,
         section_name=section
-    ).first_or_404()
+    ).first()
+
+    if selected_section is None:
+        normalized_section = section.strip().casefold()
+        selected_section = next(
+            (item for item in Section.query.filter_by(paper_id=paper.id).all()
+             if item.section_name.strip().casefold() == normalized_section),
+            None
+        )
+
+    if selected_section is None:
+        return "Practice section not found. Please return to the section list.", 404
 
     questions = Question.query.filter_by(
         section_id=selected_section.id
