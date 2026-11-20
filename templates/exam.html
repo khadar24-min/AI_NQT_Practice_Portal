@@ -12,8 +12,9 @@
 </head>
 <body class="app-page exam-page">
 <nav class="navbar navbar-dark site-nav"><div class="container"><a class="navbar-brand brand-mark" href="{{ url_for('dashboard') }}">Prep<span>AI</span></a><span class="exam-context">{{ company }} <span>·</span> {{ year }} <span>·</span> {{ section.section_name if section.section_name else section }}</span></div></nav>
-<header class="exam-header"><div class="container d-flex flex-wrap justify-content-between align-items-center gap-3"><div><div class="eyebrow">FOCUSED ASSESSMENT</div><h1>{{ section.section_name if section.section_name else section }}</h1><p>{{ company }} · {{ year }} practice set · {{ questions|length }} questions</p></div><div class="timer-panel"><span>TIME REMAINING</span><strong id="timer">30:00</strong></div></div></header>
+<header class="exam-header"><div class="container d-flex flex-wrap justify-content-between align-items-center gap-3"><div><div class="eyebrow">COMPANY-PATTERN PRACTICE</div><h1>{{ section.section_name if section.section_name else section }}</h1><p>{{ company }} preparation · generated practice set · {{ questions|length }} questions</p></div><div class="timer-panel"><span>TIME REMAINING</span><strong id="timer">30:00</strong></div></div></header>
 <main class="container py-4 py-lg-5">
+<div class="library-disclaimer mb-4"><span class="disclaimer-icon">i</span><div><strong>Practice material, not an official paper</strong><p>These questions are generated for placement preparation. The company and year identify the practice collection, not a claim that these exact questions appeared in the company exam.</p></div></div>
 {% if questions %}
 <form method="POST" id="examForm">
   <div class="exam-progress-wrap"><div><span>Assessment progress</span><strong id="answeredCount">0 / {{ questions|length }} answered</strong></div><div class="progress"><div class="progress-bar" id="examProgress" style="width:0%"></div></div></div>
