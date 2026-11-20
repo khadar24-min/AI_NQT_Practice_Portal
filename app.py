@@ -187,8 +187,12 @@ def load_user(user_id):
 
 @app.route("/")
 def home():
-    users = User.query.order_by(User.id).all()
-    return render_template("index.html")
+    return render_template(
+        "index.html",
+        company_count=Company.query.count(),
+        paper_count=Paper.query.count(),
+        question_count=Question.query.count()
+    )
 
 
 # ==========================
