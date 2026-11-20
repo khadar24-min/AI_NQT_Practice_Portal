@@ -64,8 +64,8 @@
         <div class="panel-body">
           <div class="row g-3">
             <div class="col-md-6"><a class="action-card" href="{{ url_for('companies') }}"><span class="action-icon">▦</span><span><strong>Company-wise papers</strong><small>Explore company practice sets</small></span></a></div>
-            <div class="col-md-6"><a class="action-card" href="{{ url_for('topic_practice') }}"><span class="action-icon">◫</span><span><strong>Topic-wise practice</strong><small>Build skills by subject area</small></span></a></div>
-            <div class="col-md-6"><a class="action-card" href="{{ url_for('mock_test') }}"><span class="action-icon">◎</span><span><strong>Full mock test</strong><small>Try a timed assessment</small></span></a></div>
+            <div class="col-md-6"><a class="action-card" href="{{ url_for('practice.topic_library') }}"><span class="action-icon">◫</span><span><strong>Topic-wise practice</strong><small>Build skills by subject area</small></span></a></div>
+            <div class="col-md-6"><a class="action-card" href="{{ url_for('practice.mock_test_library') }}"><span class="action-icon">◎</span><span><strong>Full mock test</strong><small>Try a timed assessment</small></span></a></div>
             <div class="col-md-6"><a class="action-card" href="{{ url_for('ai_interview') }}"><span class="action-icon">✦</span><span><strong>AI interview practice</strong><small>Prepare for interview rounds</small></span></a></div>
             <div class="col-md-6"><a class="action-card" href="{{ url_for('resume_analyzer') }}"><span class="action-icon">▧</span><span><strong>Resume analyzer</strong><small>Review your resume</small></span></a></div>
             <div class="col-md-6"><a class="action-card" href="{{ url_for('chatbot') }}"><span class="action-icon">◌</span><span><strong>PrepAI assistant</strong><small>Get help with preparation</small></span></a></div>
@@ -96,7 +96,7 @@
         <div class="panel-head"><h2>Today's focus</h2></div>
         <div class="panel-body">
           <div class="tip-box"><strong>Small, steady practice wins.</strong><p class="small mb-0 mt-2">Try 20 aptitude questions, review every mistake, and revisit the topics you found difficult.</p></div>
-          <a href="{{ url_for('topic_practice') }}" class="btn btn-card w-100">Start topic practice <span>→</span></a>
+          <a href="{{ url_for('practice.topic_library') }}" class="btn btn-card w-100">Start topic practice <span>→</span></a>
         </div>
       </div>
     </div>
