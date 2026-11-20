@@ -718,7 +718,10 @@ def exam(company, year, section):
     paper = Paper.query.filter_by(
         company_id=company_obj.id,
         year=year
-    ).first_or_404()
+    ).first()
+    if paper is None:
+        flash(f"No {year} practice set is available for {company}. Choose an available year instead.", "warning")
+        return redirect(url_for("papers", company=company_obj.company_name))
 
     selected_section = Section.query.filter_by(
         paper_id=paper.id,
@@ -734,7 +737,8 @@ def exam(company, year, section):
         )
 
     if selected_section is None:
-        return "Practice section not found. Please return to the section list.", 404
+        flash(f'"{section}" is not listed for {company} {year}. Choose an available practice area.', "warning")
+        return redirect(url_for("sections", company=company_obj.company_name, year=year))
 
     questions = Question.query.filter_by(
         section_id=selected_section.id
@@ -840,6 +844,11 @@ def result(result_id):
         "result.html",
         result=result
     )
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template("404.html"), 404
+
+
 # ==========================================
 # My Progress
 # ==========================================
