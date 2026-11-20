@@ -15,7 +15,8 @@ main{display:grid;place-items:center;padding:48px 20px}.layout{width:min(100%,98
 label{display:block;font-size:13px;font-weight:700;color:#34445f;margin:0 0 8px}.field{margin-bottom:19px}.field input{width:100%;height:48px;border:1px solid #dfe6f0;border-radius:10px;padding:0 14px;font:14px 'DM Sans';color:#1d2e4a;background:#fbfcfe;outline:none}.field input:focus{border-color:#7ea2ed;box-shadow:0 0 0 3px #3971e51a;background:#fff}.password-wrap{position:relative}.password-wrap input{padding-right:72px}.toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:#356bd7;font-size:12px;font-weight:700;cursor:pointer}
 .submit{width:100%;height:49px;border:0;border-radius:10px;background:#285fce;color:white;font:700 14px 'DM Sans';cursor:pointer;box-shadow:0 7px 16px #285fce26}.submit:hover{background:#204fae}.footnote{text-align:center;color:#9aa4b4;font-size:11px;margin-top:20px}
 @media(max-width:800px){body{grid-template-rows:66px 1fr}.layout{grid-template-columns:1fr;gap:28px;max-width:450px}.intro{text-align:center}.intro p{margin:auto}.security{justify-content:center}.card{padding:26px}.intro h1{font-size:36px}}
-</style></head>
+</style><link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+</head>
 <body>
 <header class="topbar"><div class="topbar-inner"><a class="brand" href="/">Prep<span>AI</span></a><a class="top-link" href="{{ url_for('login') }}">Student login</a></div></header>
 <main><div class="layout">
