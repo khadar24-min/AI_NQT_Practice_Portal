@@ -35,7 +35,7 @@
   <div class="container">
     <a class="navbar-brand brand-mark" href="{{ url_for('dashboard') }}">Prep<span>AI</span><small>PLACEMENT PRACTICE</small></a>
     <div class="ms-auto d-flex align-items-center gap-2">
-      <span class="text-white-50 small d-none d-sm-inline">Hi, {{ user.name }}</span>
+      <span class="text-white-50 small d-none d-sm-inline">Signed in as <strong>{{ user.name }}</strong></span>
       <a href="{{ url_for('logout') }}" class="btn btn-nav-ghost">Logout</a>
     </div>
   </div>
