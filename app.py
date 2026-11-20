@@ -772,6 +772,45 @@ def exam(company, year, section):
         section=selected_section,
         questions=questions
     )
+
+# Stable exam route: use the section's database ID instead of a URL-encoded
+# section name. This avoids route/encoding mismatches for names such as
+# "Logical Reasoning" and "Quantitative Aptitude".
+@app.route("/exam/id/<int:section_id>", methods=["GET", "POST"])
+@login_required
+def exam_by_id(section_id):
+    selected_section = Section.query.get_or_404(section_id)
+    paper = Paper.query.get_or_404(selected_section.paper_id)
+    company_obj = Company.query.get_or_404(paper.company_id)
+    questions = Question.query.filter_by(section_id=selected_section.id).order_by(Question.id.asc()).all()
+
+    if request.method == "POST":
+        score = sum(
+            1 for question in questions
+            if request.form.get(f"question_{question.id}") == question.answer
+        )
+        result = Result(
+            user_id=current_user.id,
+            company=company_obj.company_name,
+            year=paper.year,
+            section=selected_section.section_name,
+            score=score,
+            total=len(questions)
+        )
+        db.session.add(result)
+        db.session.commit()
+        flash("Exam submitted successfully!", "success")
+        return redirect(url_for("result", result_id=result.id))
+
+    return render_template(
+        "exam.html",
+        company=company_obj.company_name,
+        year=paper.year,
+        section=selected_section,
+        questions=questions
+    )
+
+
 # ==========================================
 # Result Page
 # ==========================================
