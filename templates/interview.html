@@ -1,165 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>PrepAI AI Interview</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
-
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PrepAI | Interview session</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
 </head>
-
-<body class="bg-light">
-
-<nav class="navbar navbar-dark bg-dark">
-
-    <div class="container">
-
-        <span class="navbar-brand">
-            🤖 PrepAI AI Interview
-        </span>
-
-        <span class="text-white">
-            {{ company }} | {{ role }}
-        </span>
-
-    </div>
-
-</nav>
-
-<div class="container mt-5">
-
-    <div class="card shadow-lg">
-
-        <div class="card-header bg-primary text-white">
-
-            <h3 class="mb-0">
-                AI Interview Session
-            </h3>
-
+<body class="interview-session-page">
+<nav class="navbar navbar-dark"><div class="container"><a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">🤖 PrepAI</a><span class="session-nav-meta">{{ company }} · {{ role }}</span></div></nav>
+<main class="container interview-session-wrap">
+  <section class="interview-session-card">
+    <header class="interview-session-hero">
+      <div class="interview-session-icon">✦</div>
+      <div><span class="interview-kicker">YOUR PRACTICE SESSION</span><h1>AI Interview Session</h1><p>One question at a time. Take a moment and give your best answer.</p></div>
+      <span class="session-mode-pill">{{ mode }} mode</span>
+    </header>
+    <div class="interview-session-body">
+      <div class="session-progress-head"><span>INTERVIEW PROGRESS</span><strong>{{ question_no }} <small>/ 10</small></strong></div>
+      <div class="progress session-progress"><div class="progress-bar" role="progressbar" style="width: {{ question_no * 10 }}%"></div></div>
+      <div class="session-context"><span><small>COMPANY</small><strong>{{ company }}</strong></span><span><small>ROLE</small><strong>{{ role }}</strong></span><span><small>LEVEL</small><strong>{{ difficulty }}</strong></span></div>
+      <section class="question-panel">
+        <div class="question-panel-top"><span>QUESTION {{ question_no }}</span><span>✦ AI GENERATED</span></div>
+        <h2>{{ question }}</h2>
+        {% if mode == 'Voice' %}
+        <div class="voice-tools">
+          <button type="button" id="speakQuestion" class="btn btn-light">🔊 Read question</button>
+          <button type="button" id="startListening" class="btn btn-primary">🎙 Start speaking</button>
+          <button type="button" id="stopListening" class="btn btn-outline-secondary" disabled>Stop</button>
+          <span id="voiceStatus" role="status">Voice input ready</span>
         </div>
-
-        <div class="card-body">
-
-            <!-- Progress Bar -->
-
-            <div class="mb-4">
-
-                <h6 class="mb-2">
-                    Interview Progress
-                </h6>
-
-                <div class="progress" style="height:25px;">
-
-                    <div class="progress-bar progress-bar-striped progress-bar-animated"
-                         role="progressbar"
-                         style="width: {{ question_no * 10 }}%;">
-
-                        {{ question_no }}/10
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- Interview Details -->
-
-            <div class="alert alert-info">
-
-                <strong>Company:</strong> {{ company }}
-
-                <br>
-
-                <strong>Role:</strong> {{ role }}
-
-                <br>
-
-                <strong>Difficulty:</strong> {{ difficulty }}
-
-                <br>
-
-                <strong>Interview Type:</strong> {{ mode }}
-
-            </div>
-
-            <hr>
-
-            <h5 class="text-end text-primary">
-
-                Question {{ question_no }} of 10
-
-            </h5>
-
-            <h4 class="mb-3">
-
-                Interview Question
-
-            </h4>
-
-            <div class="alert alert-warning fs-5">
-
-                {{ question }}
-
-            </div>
-
-            <form action="{{ url_for('submit_answer') }}" method="POST">
-
-                <input type="hidden" name="question" value="{{ question }}">
-
-                <div class="mb-3">
-
-                    <label class="form-label">
-
-                        Your Answer
-
-                    </label>
-
-                    <textarea
-                        name="answer"
-                        rows="8"
-                        class="form-control"
-                        placeholder="Type your answer here..."
-                        required></textarea>
-
-                </div>
-
-                <button
-                    id="submitBtn"
-                    type="submit"
-                    class="btn btn-success btn-lg w-100">
-
-                    Submit Answer
-
-                </button>
-
-            </form>
-
-        </div>
-
+        {% endif %}
+      </section>
+      <form id="answerForm" action="{{ url_for('submit_answer') }}" method="POST">
+        <input type="hidden" name="question" value="{{ question }}">
+        <label for="answer" class="form-label answer-label">Your answer</label>
+        <textarea id="answer" name="answer" rows="7" class="form-control answer-box" placeholder="{% if mode == 'Voice' %}Your spoken answer will appear here. You can also type or edit it.{% else %}Write your answer clearly and include relevant examples...{% endif %}" required></textarea>
+        <div class="answer-submit-row"><span>Your answer is saved when you submit it.</span><button id="submitBtn" type="submit" class="btn btn-primary btn-lg">Submit answer <span>→</span></button></div>
+      </form>
     </div>
-
-</div>
-
+  </section>
+</main>
+{% if mode == 'Voice' %}
 <script>
-
-document.querySelector("form").addEventListener("submit", function () {
-
-    const btn = document.getElementById("submitBtn");
-
-    btn.disabled = true;
-
-    btn.innerHTML = "🤖 AI is generating the next question...";
-
-});
-
+(() => {
+  const question = {{ question|tojson }};
+  const answer = document.getElementById('answer');
+  const status = document.getElementById('voiceStatus');
+  const start = document.getElementById('startListening');
+  const stop = document.getElementById('stopListening');
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  document.getElementById('speakQuestion').addEventListener('click', () => {
+    if (!('speechSynthesis' in window)) { status.textContent = 'Speech playback is not supported in this browser.'; return; }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(question);
+    utterance.lang = 'en-IN';
+    window.speechSynthesis.speak(utterance);
+  });
+  if (!Recognition) {
+    status.textContent = 'Speech recognition is not supported here. Please type your answer.';
+    start.disabled = true;
+  } else {
+    recognition = new Recognition();
+    recognition.lang = 'en-IN';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.onstart = () => { status.textContent = 'Listening… speak your answer'; start.disabled = true; stop.disabled = false; };
+    recognition.onresult = event => {
+      let finalText = answer.value;
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) finalText += (finalText ? ' ' : '') + event.results[i][0].transcript;
+        else interim += event.results[i][0].transcript;
+      }
+      answer.value = finalText;
+      status.textContent = interim ? 'Hearing: ' + interim : 'Answer captured';
+    };
+    recognition.onerror = event => { status.textContent = 'Voice input: ' + event.error + '. You can type instead.'; };
+    recognition.onend = () => { start.disabled = false; stop.disabled = true; if (status.textContent.startsWith('Listening')) status.textContent = 'Voice input paused'; };
+    start.addEventListener('click', () => { try { recognition.start(); } catch (_) { status.textContent = 'Voice input is already active.'; } });
+    stop.addEventListener('click', () => recognition.stop());
+  }
+  document.getElementById('answerForm').addEventListener('submit', () => {
+    if (recognition) recognition.stop();
+    window.speechSynthesis?.cancel();
+    const button = document.getElementById('submitBtn');
+    button.disabled = true;
+    button.textContent = 'Submitting answer…';
+  });
+  window.addEventListener('beforeunload', () => { if (recognition) recognition.stop(); window.speechSynthesis?.cancel(); });
+})();
 </script>
-
-</body>
-
-</html>
+{% endif %}
+</body></html>
