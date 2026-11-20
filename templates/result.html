@@ -1,342 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>PrepAI | Exam Result</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Exam Result | PrepAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    body{background:#f4f6fb;color:#17233d;font-family:'DM Sans',sans-serif}.result-nav{background:#101c35;padding:15px 0}.brand{font:800 23px Manrope;color:#fff;text-decoration:none;letter-spacing:-1px}.brand span{color:#78a5ff}
+    .result-wrap{max-width:900px;margin:52px auto 72px;padding:0 18px}.result-card{background:#fff;border:1px solid #e4e9f2;border-radius:22px;overflow:hidden;box-shadow:0 24px 70px rgba(25,42,78,.09)}
+    .result-hero{padding:34px 38px;background:linear-gradient(120deg,#172b50,#254b83);color:white;position:relative;overflow:hidden}.result-hero:after{content:"";position:absolute;width:240px;height:240px;border:1px solid #ffffff20;border-radius:50%;right:-55px;top:-125px;box-shadow:0 0 0 28px #ffffff08,0 0 0 58px #ffffff06}
+    .eyebrow{font-size:11px;letter-spacing:2px;font-weight:700;color:#a9c6ff}.result-hero h1{font:800 clamp(28px,4vw,38px) Manrope;margin:10px 0}.result-hero p{color:#d4def0;margin:0}
+    .result-content{padding:34px 38px}.score-panel{display:flex;align-items:center;gap:24px;padding:22px;border:1px solid #e4eaf4;border-radius:16px;background:#f9fbff;margin-bottom:26px}
+    .score-ring{width:112px;height:112px;border-radius:50%;display:grid;place-items:center;flex:0 0 112px;background:conic-gradient(#386ee7 calc(var(--score)*1%),#e6ebf4 0);position:relative}
+    .score-ring:before{content:"";position:absolute;inset:9px;background:#fff;border-radius:50%}.score-ring strong{position:relative;font:800 25px Manrope;color:#172b50}.score-copy small{color:#75829a;font-weight:700;letter-spacing:1px;text-transform:uppercase}.score-copy h2{font:800 23px Manrope;margin:5px 0}.score-copy p{color:#718099;margin:0}
+    .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.stat{border:1px solid #e6ebf3;border-radius:13px;padding:17px}.stat span{display:block;color:#7b879b;font-size:12px;font-weight:700;margin-bottom:7px}.stat strong{font:700 17px Manrope;color:#1c2e4e}
+    .progress-track{height:9px;border-radius:30px;background:#edf1f7;overflow:hidden;margin-top:18px}.progress-fill{height:100%;border-radius:30px;background:linear-gradient(90deg,#386ee7,#6a9cff)}
+    .feedback{margin-top:24px;padding:18px 20px;border-radius:14px;background:#f2f6ff;border:1px solid #e0e9ff;color:#344867}.feedback strong{font-weight:700}.result-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}.result-actions a{border-radius:10px;padding:12px 18px;font-weight:700;text-decoration:none}
+    .btn-primary-custom{background:#285fce;color:#fff}.btn-primary-custom:hover{background:#1d4eae;color:#fff}.btn-secondary-custom{border:1px solid #dce3ef;color:#30415f}.btn-secondary-custom:hover{background:#f5f7fb;color:#203553}
+    .empty{text-align:center;padding:50px 24px}.site-foot{text-align:center;color:#8b96a9;font-size:13px;padding:24px}
+    @media(max-width:600px){.result-wrap{margin:24px auto 42px}.result-hero,.result-content{padding:25px 20px}.score-panel{align-items:flex-start;gap:15px}.score-ring{width:88px;height:88px;flex-basis:88px}.score-ring strong{font-size:20px}.stats-grid{grid-template-columns:1fr}.result-actions a{width:100%;text-align:center}}
+  </style>
 </head>
-
-<body class="bg-light">
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-
-    <div class="container">
-
-        <a class="navbar-brand fw-bold" href="/dashboard">
-
-            PrepAI
-
-        </a>
-
-        <div class="ms-auto">
-
-            <a href="/dashboard" class="btn btn-outline-light">
-
-                Dashboard
-
-            </a>
-
+<body>
+<nav class="result-nav"><div class="container d-flex justify-content-between align-items-center"><a class="brand" href="{{ url_for('dashboard') }}">Prep<span>AI</span></a><a class="btn btn-outline-light btn-sm rounded-pill px-3" href="{{ url_for('dashboard') }}">Dashboard</a></div></nav>
+<main class="result-wrap">
+  <section class="result-card">
+    {% if result %}
+    {% set percentage = ((result.score / result.total) * 100) if result.total else 0 %}
+    <header class="result-hero"><div class="eyebrow">ASSESSMENT SUMMARY</div><h1>Test completed.</h1><p>Your effort is recorded. Here's how you did.</p></header>
+    <div class="result-content">
+      <div class="score-panel">
+        <div class="score-ring" style="--score:{{ percentage }}"><strong>{{ percentage|round(0)|int }}%</strong></div>
+        <div class="score-copy"><small>Overall performance</small>
+          {% if percentage >= 80 %}<h2>Excellent work</h2><p>Strong performance. Keep your momentum going.</p>
+          {% elif percentage >= 60 %}<h2>Good progress</h2><p>You have a solid base. Review the missed questions.</p>
+          {% elif percentage >= 40 %}<h2>Keep building</h2><p>You're making progress. Focus on the topics that need practice.</p>
+          {% else %}<h2>A fresh start</h2><p>Use this attempt to find gaps and build your next practice session.</p>{% endif %}
         </div>
-
+      </div>
+      <div class="stats-grid">
+        <div class="stat"><span>COMPANY</span><strong>{{ result.company }}</strong></div>
+        <div class="stat"><span>PRACTICE YEAR</span><strong>{{ result.year }}</strong></div>
+        <div class="stat"><span>SECTION</span><strong>{{ result.section }}</strong></div>
+        <div class="stat"><span>YOUR SCORE</span><strong>{{ result.score }} / {{ result.total }}</strong></div>
+        <div class="stat"><span>CORRECT</span><strong>{{ result.score }}</strong></div>
+        <div class="stat"><span>INCORRECT / SKIPPED</span><strong>{{ result.total - result.score }}</strong></div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:{{ percentage }}%"></div></div>
+      <div class="feedback"><strong>What to do next</strong><div class="small mt-1">Review the concepts behind every missed answer, then try another practice set. Consistent review beats random repetition.</div></div>
+      <div class="result-actions"><a class="btn-primary-custom" href="{{ url_for('companies') }}">Practice another set →</a><a class="btn-secondary-custom" href="{{ url_for('progress') }}">View my progress</a><a class="btn-secondary-custom" href="{{ url_for('download_result', result_id=result.id) }}">Download result PDF</a></div>
     </div>
-
-</nav>
-
-<div class="container py-5">
-
-<div class="row justify-content-center">
-
-<div class="col-lg-8">
-
-<div class="card shadow">
-
-<div class="card-header bg-success text-white text-center">
-
-<h2>
-
-🎉 Exam Completed
-
-</h2>
-
-<p class="mb-0">
-
-Your Result Analysis
-
-</p>
-
-</div>
-
-<div class="card-body">
-
-{% if result %}
-
-<table class="table table-bordered">
-
-<tr>
-
-<th width="35%">
-
-Company
-
-</th>
-
-<td>
-
-{{ result.company }}
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Year
-
-</th>
-
-<td>
-
-{{ result.year }}
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Section
-
-</th>
-
-<td>
-
-{{ result.section }}
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Score
-
-</th>
-
-<td>
-
-{{ result.score }} / {{ result.total }}
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Percentage
-
-</th>
-
-<td>
-
-{{ ((result.score/result.total)*100)|round(2) }} %
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Performance
-
-</th>
-
-<td>
-
-{% if result.score/result.total >= 0.8 %}
-
-<span class="badge bg-success fs-6">
-
-Excellent
-
-</span>
-
-{% elif result.score/result.total >= 0.6 %}
-
-<span class="badge bg-primary fs-6">
-
-Good
-
-</span>
-
-{% elif result.score/result.total >= 0.4 %}
-
-<span class="badge bg-warning text-dark fs-6">
-
-Average
-
-</span>
-
-{% else %}
-
-<span class="badge bg-danger fs-6">
-
-Needs Improvement
-
-</span>
-
-{% endif %}
-
-</td>
-
-</tr>
-
-</table>
-
-<h4 class="mt-4">
-
-Overall Performance
-
-</h4>
-
-<div class="progress mb-4" style="height:30px;">
-
-<div
-
-class="progress-bar progress-bar-striped progress-bar-animated bg-success"
-
-style="width: {{ ((result.score/result.total)*100) }}%;">
-
-{{ ((result.score/result.total)*100)|round(2) }}%
-
-</div>
-
-</div>
-
-<div class="alert alert-info">
-
-{% if result.score/result.total >= 0.8 %}
-
-<h5>🏆 Excellent!</h5>
-
-<p>
-
-You performed exceptionally well. You are well prepared for placement exams.
-
-</p>
-
-{% elif result.score/result.total >= 0.6 %}
-
-<h5>👍 Good Job!</h5>
-
-<p>
-
-Your performance is good. Keep practicing aptitude and coding to improve further.
-
-</p>
-
-{% elif result.score/result.total >= 0.4 %}
-
-<h5>📚 Average Performance</h5>
-
-<p>
-
-Focus on reasoning, aptitude and coding practice to increase your score.
-
-</p>
-
-{% else %}
-
-<h5>💪 Keep Practicing</h5>
-
-<p>
-
-Don't worry. Solve more company papers and practice daily. Improvement comes with consistency.
-
-</p>
-
-{% endif %}
-
-</div>
-
-<div class="text-center mt-4">
-
-<a href="/dashboard" class="btn btn-primary btn-lg me-3">
-
-🏠 Dashboard
-
-</a>
-<a href="/download_result/{{ result.id }}"
-class="btn btn-danger">
-
-📄 Download PDF
-
-</a>
-
-<a href="/companies" class="btn btn-success btn-lg">
-
-🔄 Take Another Test
-
-</a>
-
-</div>
-
-{% else %}
-
-<div class="alert alert-warning text-center">
-
-<h4>
-
-No Result Found
-
-</h4>
-
-<p>
-
-Please complete an exam first.
-
-</p>
-
-</div>
-
-<div class="text-center">
-
-<a href="/companies" class="btn btn-success">
-
-Start Practice
-
-</a>
-
-</div>
-
-{% endif %}
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<footer class="bg-dark text-white text-center py-3">
-
-© 2026 PrepAI | AI Placement Preparation Portal
-
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-</body>
-
-</html>
+    {% else %}
+    <div class="empty"><div class="eyebrow">NO RESULT AVAILABLE</div><h2 class="mt-2">Your result isn't here yet.</h2><p class="text-secondary">Complete a practice test and your result will appear here.</p><a class="btn-primary-custom d-inline-block mt-3" href="{{ url_for('companies') }}">Start practising</a></div>
+    {% endif %}
+  </section>
+</main>
+<footer class="site-foot">PrepAI · Practice with purpose.</footer>
+</body></html>
