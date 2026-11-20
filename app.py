@@ -1266,30 +1266,14 @@ def ai_interview():
 @app.route("/start_interview", methods=["POST"])
 @login_required
 def start_interview():
+    company = request.form.get("company", "General").strip()
+    role = request.form.get("role", "Software Engineer").strip()
+    difficulty = request.form.get("difficulty", "Medium").strip()
+    mode = request.form.get("mode", "Text").strip()
 
-    company = request.form["company"]
-    role = request.form["role"]
-    difficulty = request.form["difficulty"]
-    mode = request.form["mode"]
+    # A real interview starts with an introduction, not a random technical quiz.
+    question = "Good morning. Thank you for joining us. To begin, could you please introduce yourself and walk me through your background?"
 
-    prompt = f"""
-You are an expert interviewer.
-
-Company: {company}
-Role: {role}
-Difficulty: {difficulty}
-Interview Type: {mode}
-
-Ask ONLY ONE interview question.
-
-Do not give the answer.
-Do not explain anything.
-Return only the question.
-"""
-
-    question = ask_gemini(prompt)
-
-    # Store interview details in session
     session["company"] = company
     session["role"] = role
     session["difficulty"] = difficulty
@@ -1298,143 +1282,110 @@ Return only the question.
     session["history"] = []
 
     return render_template(
-        "interview.html",
-        company=company,
-        role=role,
-        difficulty=difficulty,
-        mode=mode,
-        question=question,
-        question_no=1
+        "interview.html", company=company, role=role,
+        difficulty=difficulty, mode=mode,
+        question=question, question_no=1
     )
+
 
 @app.route("/submit_answer", methods=["POST"])
 @login_required
 def submit_answer():
+    question = request.form.get("question", "").strip()
+    answer = request.form.get("answer", "").strip()
+    if not answer:
+        flash("Please enter or speak an answer before submitting.", "warning")
+        return redirect(url_for("ai_interview"))
 
-    # Get current question and user's answer
-    question = request.form["question"]
-    answer = request.form["answer"]
-
-    # Get interview history from session
     history = session.get("history", [])
-
-    # Save current question and answer
-    history.append({
-        "question": question,
-        "answer": answer
-    })
-
+    history.append({"question": question, "answer": answer})
     session["history"] = history
-
-    # Current question number
     question_no = session.get("question_no", 1)
 
-    # If interview is finished
     if question_no >= 10:
-
         prompt = f"""
-You are an expert technical interviewer.
-
-Company: {session['company']}
-Role: {session['role']}
-Difficulty: {session['difficulty']}
-Interview Type: {session['mode']}
-
-Below is the complete interview.
-
+You are a fair, experienced placement interviewer conducting a realistic {session['company']} interview for a {session['role']} role.
+Assess only what the candidate actually said. Do not invent achievements or assume knowledge that was not demonstrated.
+Interview transcript:
 {history}
 
-Evaluate the candidate.
-
-Return the evaluation in the following format:
-
-Overall Score: __/10
-
-Technical Score: __/10
-
-Communication Score: __/10
-
-Confidence Score: __/10
-
-Strengths:
-- Point 1
-- Point 2
-
-Weaknesses:
-- Point 1
-- Point 2
-
-Ideal Answer:
-(Provide an ideal answer.)
-
-Hiring Recommendation:
-Hire / Consider / Reject
-
-Suggestions:
-- Point 1
-- Point 2
+Give concise, useful feedback with:
+Overall rating /10; communication /10; role knowledge /10;
+2-3 strengths; 2-3 improvement areas; one example of how to improve a weak answer;
+a clear hiring-style recommendation (Strong / Potential / Not yet ready);
+and three specific next steps.
+Be constructive and do not penalize a candidate for being nervous.
 """
-
         feedback = ask_gemini(prompt)
-
         result = InterviewResult(
             user_id=current_user.id,
             company=session["company"],
             role=session["role"],
             feedback=feedback
         )
-
         db.session.add(result)
         db.session.commit()
 
-        # Clear interview session
+        company = session.get("company", "")
+        role = session.get("role", "")
         session.pop("history", None)
         session.pop("question_no", None)
+        session.pop("company", None)
+        session.pop("role", None)
+        session.pop("difficulty", None)
+        session.pop("mode", None)
 
         return render_template(
-            "feedback.html",
-            company=session["company"],
-            role=session["role"],
+            "feedback.html", company=company, role=role,
             question="Interview Completed",
-            answer="You successfully completed all 10 questions.",
+            answer="You completed the 10-question interview.",
             feedback=feedback
         )
 
-    # Otherwise generate the next question
-    next_question_no = question_no + 1
-
+    next_no = question_no + 1
+    transcript = "\n".join(
+        f"Interviewer: {item['question']}\nCandidate: {item['answer']}"
+        for item in history
+    )
     prompt = f"""
-You are an expert interviewer.
+You are a professional human placement interviewer at {session['company']}.
+You are interviewing a candidate for {session['role']}. Difficulty: {session['difficulty']}.
+This is question {next_no} of 10 in one continuous interview.
 
-Company: {session['company']}
-Role: {session['role']}
-Difficulty: {session['difficulty']}
-Interview Type: {session['mode']}
+Conversation so far:
+{transcript}
 
-Previous Interview History:
+Conduct the interview naturally and progressively:
+- Q2: ask about one project, responsibility, or experience mentioned in the introduction.
+- Q3: ask a relevant follow-up about the candidate's own contribution or a challenge.
+- Q4-Q7: assess role-related fundamentals and practical problem solving, one subject at a time.
+- Q8: ask a scenario-based question relevant to the role.
+- Q9: ask a behavioral question about teamwork, conflict, failure, or learning.
+- Q10: ask a suitable closing question, such as why the candidate is a good fit or whether they have questions.
 
-{history}
-
-Generate ONLY Question {next_question_no}.
-
-Rules:
-- Do not repeat previous questions.
-- Ask a new relevant technical or HR question.
-- Return ONLY the question.
+Adapt the next question to the candidate's previous answers. If they mention a specific project, skill, or technology, use it for a natural follow-up. Do not ask the same question again. Avoid generic quiz wording and avoid multiple questions in one turn. Ask exactly ONE clear question, with a brief natural interviewer transition if useful. Do not provide hints, answers, scoring, or explanations. Return only the interviewer’s spoken words.
 """
+    next_question = ask_interview_gemini(prompt)
+    if not next_question:
+        # Keep the session usable if the model provider is temporarily unavailable.
+        fallbacks = {
+            2: "Thank you. Could you tell me about one project you have worked on and the problem it was designed to solve?",
+            3: "What was your specific contribution to that project, and what was the most challenging part?",
+            4: f"Which technical skill do you think is most important for a {session['role']}, and why?",
+            5: "Can you describe a technical problem you faced and how you worked through it?",
+            6: "How would you explain one of the technologies you used in your project to a non-technical person?",
+            7: "If you had more time to improve your project, what would you change first?",
+            8: "Suppose a critical issue appears just before a deadline. How would you investigate and handle it?",
+            9: "Tell me about a time you received feedback or made a mistake. How did you respond?",
+            10: "Why do you think you are a good fit for this role?"
+        }
+        next_question = fallbacks.get(next_no, "What would you like us to know about your approach to this role?")
 
-    next_question = ask_gemini(prompt)
-
-    session["question_no"] = next_question_no
-
+    session["question_no"] = next_no
     return render_template(
-        "interview.html",
-        company=session["company"],
-        role=session["role"],
-        difficulty=session["difficulty"],
-        mode=session["mode"],
-        question=next_question,
-        question_no=next_question_no
+        "interview.html", company=session["company"], role=session["role"],
+        difficulty=session["difficulty"], mode=session["mode"],
+        question=next_question, question_no=next_no
     )
 
 @app.route("/interview_history")
