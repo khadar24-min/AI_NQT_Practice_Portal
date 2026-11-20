@@ -39,6 +39,23 @@ def ask_gemini(prompt):
     except Exception as e:
         return f"AI service is temporarily unavailable: {e}"
 
+def ask_interview_gemini(prompt):
+    """Generate a short interview turn without retrying a busy provider."""
+    if client is None:
+        app.logger.error("AI interview unavailable: GEMINI_API_KEY is not configured")
+        return None
+    try:
+        response = client.models.generate_content(
+            model=os.getenv("GEMINI_INTERVIEW_MODEL", "gemini-flash-latest"),
+            contents=prompt,
+            config={"temperature": 0.35, "max_output_tokens": 120}
+        )
+        text = (response.text or "").strip()
+        return text or None
+    except Exception:
+        app.logger.exception("AI interview generation failed")
+        return None
+
 @app.route("/test_ai")
 @login_required
 def test_ai():
