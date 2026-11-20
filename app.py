@@ -1726,5 +1726,9 @@ with app.app_context():
 # Run Application
 # ==========================================
 
+from student_practice import create_practice_blueprint
+app.register_blueprint(create_practice_blueprint(db, Company, Paper, Section, Question, Result))
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)
