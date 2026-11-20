@@ -122,7 +122,7 @@ a{color:var(--pa-blue)}
 .pa-online-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#6ed5a0;margin-right:5px}
 .pa-chat-body{padding:25px}
 .pa-chat-empty{text-align:center;padding:34px 15px 28px}
-.pa-chat-empty>div{margin:0 auto 15px;width:54px;height:54px;border-radius:17px;background:#edf2ff;color:#3569d4;display:grid;place-items:center;font-size:25px}
+.pa-chat-empty>div:first-child{margin:0 auto 15px;width:54px;height:54px;border-radius:17px;background:#edf2ff;color:#3569d4;display:grid;place-items:center;font-size:25px}
 .pa-chat-empty h2{font-size:20px;font-weight:800;color:#1b2b47}
 .pa-chat-empty p{max-width:470px;margin:8px auto 17px;color:#8290a4;font-size:12px}
 .pa-prompt-chips{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
@@ -154,3 +154,10 @@ a{color:var(--pa-blue)}
 .pa-detail-row span{color:#8290a4}.pa-detail-row strong{color:#293b59;text-align:right}
 .pa-medal{font-size:20px}.pa-rank-number{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:#f1f4f9;color:#536783;font-size:11px;font-weight:800}
 @media(max-width:640px){.pa-page{padding-top:30px;padding-bottom:45px}.pa-page-heading{align-items:flex-start}.pa-heading-icon{width:46px;height:46px;flex-basis:46px;border-radius:14px}.pa-form-card,.pa-side-card{padding:21px}.pa-chat-body{padding:17px}.pa-section-heading{padding:18px;align-items:flex-start}.pa-table thead th,.pa-table tbody td{padding:12px!important}.pa-detail-row{font-size:11px}.pa-stat-card{padding:19px}}
+
+/* Chat prompt suggestions: keep them in a natural horizontal row, never in the icon tile layout */
+.pa-chat-empty .pa-prompt-chips{display:flex!important;width:100%;height:auto;margin:18px auto 0;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.pa-chat-empty .pa-prompt-chips span{display:inline-flex;align-items:center;justify-content:center;width:auto;height:auto;min-height:38px;padding:9px 15px;border:1px solid #dfe7f4;border-radius:999px;background:#fff;color:#526783;font-size:12px;line-height:1.35;white-space:normal;max-width:100%;cursor:pointer}
+.pa-chat-empty .pa-prompt-chips span:hover{border-color:#9bb5eb;background:#f5f8ff;color:#315fbd}
+.pa-chat-form{position:relative;clear:both;margin-top:24px}
+@media(max-width:640px){.pa-chat-empty .pa-prompt-chips{gap:8px}.pa-chat-empty .pa-prompt-chips span{font-size:11px;padding:8px 12px}}
