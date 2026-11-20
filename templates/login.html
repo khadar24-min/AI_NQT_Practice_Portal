@@ -1,137 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
-
-<head>
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Login | PrepAI</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
-</head>
-
-<body>
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-
-    <div class="container">
-
-        <a class="navbar-brand" href="/">PrepAI</a>
-
-        <div class="ms-auto">
-
-            <a href="/" class="btn btn-outline-light me-2">
-                Home
-            </a>
-
-            <a href="/register" class="btn btn-primary">
-                Register
-            </a>
-
-        </div>
-
-    </div>
-
-</nav>
-
-<div class="container">
-
-    <div class="form-container">
-
-        <h2 class="form-title">
-            Login
-        </h2>
-
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% for category, message in messages %}
-
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-
-                    {{ message }}
-
-                    <button type="button"
-                            class="btn-close"
-                            data-bs-dismiss="alert">
-                    </button>
-
-                </div>
-
-            {% endfor %}
-        {% endwith %}
-
-        <form method="POST">
-
-            <div class="mb-3">
-
-                <label class="form-label">
-                    Email Address
-                </label>
-
-                <input
-                    type="email"
-                    name="email"
-                    class="form-control"
-                    placeholder="Enter Email"
-                    required>
-
-            </div>
-
-            <div class="mb-3">
-
-                <label class="form-label">
-                    Password
-                </label>
-
-                <input
-                    type="password"
-                    name="password"
-                    class="form-control"
-                    placeholder="Enter Password"
-                    required>
-
-            </div>
-
-            <!-- Forgot Password Link -->
-
-            <div class="text-end mb-3">
-
-                <a href="{{ url_for('forgot_password') }}">
-                    Forgot Password?
-                </a>
-
-            </div>
-
-            <button
-                type="submit"
-                class="btn btn-primary w-100">
-
-                Login
-
-            </button>
-
-        </form>
-
-        <div class="text-center mt-4">
-
-            Don't have an account?
-
-            <a href="{{ url_for('register') }}">
-                Register Here
-            </a>
-
-        </div>
-
-    </div>
-
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-</body>
-
-</html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign in | PrepAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#f4f6fb;font-family:'DM Sans',sans-serif;color:#182641}.topbar{height:76px;background:#101c35;display:flex;align-items:center}.topbar .container{display:flex;justify-content:space-between;align-items:center}.brand{font:800 25px Manrope;color:#fff;text-decoration:none;letter-spacing:-1px}.brand span{color:#79a5ff}.top-links{display:flex;gap:10px}.top-links a{padding:9px 16px;border-radius:9px;text-decoration:none;font-weight:700;color:#e7edfa;border:1px solid #ffffff36}.top-links a.primary{background:#386ee7;border-color:#386ee7;color:#fff}
+.login-layout{max-width:1050px;margin:62px auto;padding:0 20px;display:grid;grid-template-columns:1fr 430px;gap:70px;align-items:center}.intro .eyebrow{font-size:11px;letter-spacing:2px;color:#386ee7;font-weight:800}.intro h1{font:800 clamp(36px,5vw,52px) Manrope;line-height:1.1;letter-spacing:-2px;margin:15px 0}.intro p{font-size:17px;color:#718099;max-width:440px;line-height:1.7}.intro .mini{display:flex;gap:12px;margin-top:28px;color:#52627c;font-size:13px}.mini span{background:#e8eefb;border-radius:30px;padding:9px 13px}
+.login-card{background:#fff;border:1px solid #e5eaf2;border-radius:20px;padding:34px;box-shadow:0 24px 65px rgba(23,41,76,.09)}.login-card h2{font:800 25px Manrope;margin:0 0 6px}.sub{color:#8490a3;font-size:14px;margin-bottom:25px}.form-label{font-size:13px;font-weight:700;color:#33445f;margin-bottom:8px}.form-control{border:1px solid #dfe5ef;border-radius:10px;padding:13px 14px;background:#fafbfe}.form-control:focus{border-color:#7da3f6;box-shadow:0 0 0 3px #386ee71a;background:white}.forgot{display:block;text-align:right;font-size:13px;color:#386ee7;text-decoration:none;font-weight:700;margin:0 0 20px}.submit{width:100%;border:0;border-radius:10px;padding:13px;background:#285fce;color:white;font-weight:700;font-size:15px}.submit:hover{background:#1d4eae}.register{text-align:center;font-size:13px;color:#7c879a;margin-top:22px}.register a{color:#285fce;font-weight:700;text-decoration:none}.alert{font-size:13px;border-radius:10px}
+@media(max-width:800px){.login-layout{grid-template-columns:1fr;gap:28px;margin:35px auto}.intro h1{font-size:37px}.intro p{font-size:15px}.intro .mini{flex-wrap:wrap}.login-card{padding:26px}}
+</style></head><body>
+<header class="topbar"><div class="container"><a class="brand" href="/">Prep<span>AI</span></a><nav class="top-links"><a href="/">Home</a><a class="primary" href="{{ url_for('register') }}">Create account</a></nav></div></header>
+<main class="login-layout">
+<section class="intro"><div class="eyebrow">YOUR PLACEMENT JOURNEY STARTS HERE</div><h1>Prepare with<br>purpose.</h1><p>Build confidence for your next opportunity with focused practice, mock assessments and interview preparation.</p><div class="mini"><span>Company-wise practice</span><span>Timed mock tests</span><span>Progress tracking</span></div></section>
+<section class="login-card"><h2>Welcome back</h2><div class="sub">Sign in to continue your preparation.</div>
+{% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endwith %}
+<form method="POST">
+<div class="mb-3"><label class="form-label" for="email">Email address</label><input id="email" type="email" name="email" class="form-control" placeholder="you@example.com" autocomplete="email" required></div>
+<div class="mb-2"><label class="form-label" for="password">Password</label><input id="password" type="password" name="password" class="form-control" placeholder="Enter your password" autocomplete="current-password" required></div>
+<a class="forgot" href="{{ url_for('forgot_password') }}">Forgot password?</a>
+<button type="submit" class="submit">Sign in to PrepAI</button></form>
+<div class="register">New to PrepAI? <a href="{{ url_for('register') }}">Create an account</a></div></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script></body></html>
